@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chat2</title>
+	<link rel="stylesheet" type="text/css" href="/static/chat/css/index.css">
+	<script src="/static/chat/js/jquery.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="content">
+			<ul>
+				<!-- <li>
+	                <img src="/static/chat/images/1.jpg" alt="" class="imgright">
+	                <span class="spanright">1</span>
+	                <i class="iright">已读</i>
+	            </li>
+	            <li>
+	                <img src="/static/chat/images/2.jpg" alt="" class="imgleft">
+	                <span class="spanleft">3</span>
+	                <i class="ileft">已读</i>
+	            </li> -->
+	            
+			</ul>
+		</div>
+		<div class="input">
+			<input type="text" id="text">
+			<input type="submit" id="submit" value="发送">
+		</div>
+	</div>
+
+</body>
+<script>
+	var from_id={$from_id};
+	var to_id={$to_id};
+	console.log(from_id,to_id)
+	var ws=new WebSocket("ws://chat2.com:8283");
+	ws.onmessage=function(e){
+		console.log(e)
+		var msg=JSON.parse(e.data)
+		console.log(msg)
+		switch(msg.type){
+			case "bind":
+			var data='{"type":"bind","data":"bind","from_id":"'+from_id+'","to_id":"'+to_id+'"}'
+			ws.send(data)
+			return;
+			case "text":
+			if(to_id==msg.from_id){
+				$(".content ul").append('<li><img src="/static/chat/images/2.jpg" alt="" class="imgleft"><span class="spanleft">'+msg.data+'</span><i class="ileft">已读</i></li>')
+			}
+		}
+	}
+	$("#submit").click(function(){
+		// alert(1)
+		if($("#text").val()==''){
+			return;
+		}
+		var msg=$("#text").val()
+		$(".content ul").append('<li><img src="/static/chat/images/1.jpg" alt="" class="imgright"><span class="spanright">'+msg+'</span><i class="iright">已读</i></li>')
+		var data='{"type":"text","data":"'+msg+'","from_id":"'+from_id+'","to_id":"'+to_id+'"}'
+		ws.send(data)
+		//数据持久化
+		$.ajax({
+			url:'index.php/api/Chat/record',
+			data:data,
+			dataType:'json',
+			success:function(e){
+				console.log(e,'ajax')
+			}
+		})
+		$("#text").val("")
+	})
+</script>
+</html>
